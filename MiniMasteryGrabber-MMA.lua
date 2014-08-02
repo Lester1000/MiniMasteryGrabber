@@ -1,9 +1,11 @@
-local masteryGrabberVersion = 1.0
+local masteryGrabberVersion = 1.1
 
 local METHOD = 1 -- 0 = extragoz, 1 = superx321
 local SummonerInfo = {}
+_OwnEnv = GetCurrentEnv().FILE_NAME:gsub(".lua", "")
 
 AddLoadCallback(function()
+	print("<font color=\"#FF0F0F\">Loaded MiniMasteryGrabber version " .. masteryGrabberVersion .. ".</font>")
 	TCPU = TCPUpdater()
 	TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-MMA.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-MMA.version", "local masteryGrabberVersion =")
 	if (METHOD == 1) then
@@ -12,9 +14,10 @@ AddLoadCallback(function()
 			SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
 		else
 			DelayAction(function() 
-			if (_G.MMA_Loaded) then
-				SummonerInfo[myHero.name] = nil
-				SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
+				if (_G.MMA_Loaded) then
+					SummonerInfo[myHero.name] = nil
+					SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
+				end
 			end, 0.5)
 		end
 	end
@@ -174,7 +177,7 @@ function TCPUpdater:TCPUpdate()
 
 		if self.AutoUpdates[i]["ServerVersion"] and self.AutoUpdates[i]["LocalVersion"] and self.AutoUpdates[i]["ScriptPath"] and not _G.TCPUpdates[self.AutoUpdates[i]["Name"]] then
 			if self.AutoUpdates[i]["ServerVersion"] > self.AutoUpdates[i]["LocalVersion"] then
-				print("<font color=\"#F0Ff8d\"><b>ShadowVayne:</b></font> <font color=\"#FF0F0F\">Updating ".. self.AutoUpdates[i]["Name"].." to Version "..self.AutoUpdates[i]["ServerVersion"].."</font>")
+				print("<font color=\"#F0Ff8d\"><b>" .. self.AutoUpdates[i]["Name"] .. ":</b></font> <font color=\"#FF0F0F\">Updating ".. self.AutoUpdates[i]["Name"].." to Version "..self.AutoUpdates[i]["ServerVersion"].."</font>")
 				self:DownloadUpdate(self.AutoUpdates[i])
 			else
 				self:LoadScript(self.AutoUpdates[i])
@@ -234,12 +237,12 @@ function TCPUpdater:GetLocalVersion(TCPScript)
 			self.VersionString = string.sub(self.FileString, VersionPos + string.len(TCPScript["VersionSearchString"]) + 1, VersionPos + string.len(TCPScript["VersionSearchString"]) + 11)
 			self.VersionSave = tonumber(string.match(self.VersionString, "%d *.*%d"))
 		end
-if self.VersionSave == 2.431 then self.VersionSave = math.huge end -- VPred 2.431
-if self.VersionSave == nil then self.VersionSave = 0 end
-else
-	self.VersionSave = 0
-end
-return self.VersionSave
+		if self.VersionSave == 2.431 then self.VersionSave = math.huge end -- VPred 2.431
+		if self.VersionSave == nil then self.VersionSave = 0 end
+	else
+		self.VersionSave = 0
+	end
+	return self.VersionSave
 end
 
 function TCPUpdater:DownloadUpdate(TCPScript)
@@ -259,6 +262,7 @@ function TCPUpdater:DownloadUpdate(TCPScript)
 			self.FileOpen = io.open(TCPScript["ScriptPath"], "w+")
 			self.FileOpen:write(string.sub(TCPScript["ScriptReceive"], string.find(TCPScript["ScriptReceive"], "<bols".."cript>")+11, string.find(TCPScript["ScriptReceive"], "</bols".."cript>")-1))
 			self.FileOpen:close()
+			print("<font color=\"#FF0F0F\">Updated script.</font>")
 			self:LoadScript(TCPScript)
 		end
 	end
