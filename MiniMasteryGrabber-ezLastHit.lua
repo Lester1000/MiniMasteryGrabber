@@ -1,9 +1,11 @@
+local masteryGrabberVersion = 1.0
+
 local METHOD = 1 -- 0 = extragoz, 1 = superx321
 local SummonerInfo = {}
 
 AddLoadCallback(function()
 	TCPU = TCPUpdater()
-	TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/BoL/master/ShadowVayne.lua","/Superx321/BoL/master/ShadowVayne.Version","ShadowVersion =")
+	TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-ezLastHit.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-ezLastHit.version", "local masteryGrabberVersion =")
 	if (METHOD == 1) then
 		SummonerInfo[myHero.name] = nil
 		SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
