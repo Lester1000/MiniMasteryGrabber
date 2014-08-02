@@ -282,7 +282,7 @@ function TCPUpdater:DownloadUpdate(TCPScript)
 			self.FileOpen = io.open(TCPScript["ScriptPath"], "w+")
 			self.FileOpen:write(string.sub(TCPScript["ScriptReceive"], string.find(TCPScript["ScriptReceive"], "<bols".."cript>")+11, string.find(TCPScript["ScriptReceive"], "</bols".."cript>")-1))
 			self.FileOpen:close()
-			print("<font color=\"#FF0F0F\">Updated script.</font>")
+			print("<font color=\"#FF0F0F\">Updated script. Please double F9.</font>")
 			self:LoadScript(TCPScript)
 		end
 	end
