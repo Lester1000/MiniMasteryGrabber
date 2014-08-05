@@ -1,4 +1,4 @@
-local masteryGrabberVersion = 1.2
+local masteryGrabberVersion = 1.3
 
 local METHOD = 1 -- 0 = extragoz, 1 = superx321
 local SummonerInfo = {}
@@ -10,7 +10,7 @@ AddLoadCallback(function()
 	TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-ezLastHit.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-ezLastHit.version", "local masteryGrabberVersion =")
 	if (METHOD == 1) then
 		SummonerInfo[myHero.name] = nil
-		SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
+		SxDownloadString('http://summoning.net/v1/compare.dll/'..string.lower(GetRegion())..'/'..myHero.name, function(data) ParseLolSkill(data) end)
 	end
 end)
 
@@ -155,13 +155,13 @@ function ParseLolSkill(data)
 			else
 				SummonerSub = SummonerStartCut
 			end
-			NameStart = string.find(SummonerSub, '<a href=\"summoner/')
-			NameEnd = string.find(SummonerSub, '</a></div>\n')
+			NameStart = string.find(SummonerSub, '<a href="http://quickfind.kassad.in/profile/')
+			NameEnd = string.find(SummonerSub, '</a></strong>\n')
 			NameRaw = string.sub(SummonerSub, NameStart, NameEnd-1)
 			_,SummonerName = string.match(NameRaw, '(\">)(.*)')
 			SummonerInfo[SummonerName] = {}
 			SummonerInfo[SummonerName]["Masteries"] = {}
-			for _,Points in string.gmatch(SummonerSub, '(<div class="rank">)(%d)(/)(%d)(</div>)') do
+			for _,Points in string.gmatch(SummonerSub, '(<span id="mastery-cur-%d">)(%d)(/)(%d)(</span>)') do
 				table.insert(SummonerInfo[SummonerName]["Masteries"], Points)
 			end
 		else

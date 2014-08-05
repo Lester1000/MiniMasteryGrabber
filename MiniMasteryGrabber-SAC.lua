@@ -1,4 +1,4 @@
-local masteryGrabberVersion = 1.2
+local masteryGrabberVersion = 1.3
 
 local METHOD = 1 -- 0 = extragoz, 1 = superx321
 local SummonerInfo = {}
@@ -13,15 +13,19 @@ AddLoadCallback(function()
 			SummonerInfo[myHero.name] = nil
 			SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
 		else
-			DelayAction(function() 
-				if (_G.AutoCarry) then
-					SummonerInfo[myHero.name] = nil
-					SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
-				end
-			end, 0.5)
+			DelayAction(SAC_LOADCHECK, 0.5, {1})
 		end
 	end
 end)
+
+function SAC_LOADCHECK(x)
+	if (x < 5 and _G.AutoCarry) then
+		SummonerInfo[myHero.name] = nil
+		SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
+	else
+		DelayAction(SAC_LOADCHECK, 0.5, x + 1)
+	end
+end
 
 _G.scriptConfig.addParamEx = _G.scriptConfig.addParam
 
