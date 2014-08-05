@@ -1,4 +1,4 @@
-local masteryGrabberVersion = 1.3
+local masteryGrabberVersion = 1.31
 
 local METHOD = 1 -- 0 = extragoz, 1 = superx321
 local SummonerInfo = {}

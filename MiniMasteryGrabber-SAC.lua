@@ -1,4 +1,4 @@
-local masteryGrabberVersion = 1.3
+local masteryGrabberVersion = 1.31
 
 local METHOD = 1 -- 0 = extragoz, 1 = superx321
 local SummonerInfo = {}
@@ -8,24 +8,15 @@ AddLoadCallback(function()
 	print("<font color=\"#FF0F0F\">Loaded MiniMasteryGrabber version " .. masteryGrabberVersion .. ".</font>")
 	TCPU = TCPUpdater()
 	TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-SAC.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-SAC.version", "local masteryGrabberVersion =")
-	if (METHOD == 1) then
-		if (_G.AutoCarry) then
-			SummonerInfo[myHero.name] = nil
-			SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
-		else
-			DelayAction(SAC_LOADCHECK, 0.5, {1})
-		end
-	end
 end)
-
-function SAC_LOADCHECK(x)
-	if (x < 5 and _G.AutoCarry) then
+--TY SIDA
+AddTickCallback(function()
+	if not doneInit and _G.AutoCarry and _G.AutoCarry.Orbwalker then
+		doneInit = true
 		SummonerInfo[myHero.name] = nil
 		SxDownloadString('http://www.lolskill.net/game/'..GetRegion()..'/'..myHero.name, function(data) ParseLolSkill(data) end)
-	else
-		DelayAction(SAC_LOADCHECK, 0.5, x + 1)
 	end
-end
+end)
 
 _G.scriptConfig.addParamEx = _G.scriptConfig.addParam
 
