@@ -35,6 +35,7 @@ AddTickCallback(
 			function()
 				if (_G.MMA_Loaded) then
 					return (initiated[4114] and initiated[4154] and initiated[4162])
+				end
 				return (initiated[4114] and initiated[4154] and initiated[4162] and initiated[4111] and initiated[4152])
 			end
 		if (not fullyInitiated() and _G.MasteriesDone) then
