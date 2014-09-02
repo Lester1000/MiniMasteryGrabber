@@ -1,171 +1,143 @@
-local masteryGrabberVersion = 1.31
-
-local METHOD = 1 -- 0 = extragoz, 1 = superx321
-local SummonerInfo = {}
+local version = 2.0
 _OwnEnv = GetCurrentEnv().FILE_NAME:gsub(".lua", "")
+AddLoadCallback(
+	function()
+		TCPU = TCPUpdater()
+		TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber.version", "local version =")
+		GetMasteries()
+	end)
 
-AddLoadCallback(function()
-	print("<font color=\"#FF0F0F\">Loaded MiniMasteryGrabber version " .. masteryGrabberVersion .. ".</font>")
-	TCPU = TCPUpdater()
-	TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-ezLastHit.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber-ezLastHit.version", "local masteryGrabberVersion =")
-	if (METHOD == 1) then
-		SummonerInfo[myHero.name] = nil
-		SxDownloadString('http://summoning.net/v1/compare.dll/'..string.lower(GetRegion())..'/'..myHero.name, function(data) ParseLolSkill(data) end)
-	end
-end)
 
-_G.scriptConfig.addParamEx = _G.scriptConfig.addParam
+local menuList = {}
+local initiated = false
 
-_G.scriptConfig.addParam = function(self, pVar, pText, pType, defaultValue, a, b, c)
-	if (pVar == "ButcherOn" or pVar == "ArcaneBladeOn" or pVar == "HavocOn" or pVar == "DEdgedSwordOn" or pVar == "DevestatingStrike") then
-		DelayAction(function(menu, pVar) OnMenuLoaded(menu, pVar) end, 1.0, {self, pVar})
-	end
-	return self:addParamEx(pVar, pText, pType, defaultValue, a, b, c)
-end
-
-function OnMenuLoaded(menu, pVar)
-	if (METHOD == 0) then
-		if (MasteriesLoaded()) then
-			local Masteries = GetMasteries()
-			if (pVar == "ButcherOn") then
-				local mastery = tonumber(Masteries[myHero.name][4])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.ButcherOn = mastery
-			elseif (pVar == "ArcaneBladeOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name][19])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.ArcaneBladeOn = mastery
-			elseif (pVar == "HavocOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name][20])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.HavocOn = mastery
-			elseif (pVar == "DEdgedSwordOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name][1])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.DEdgedSwordOn = mastery
-			elseif (pvar == "DevestatingStrike") then
-				local mastery = tonumber(SummonerInfo[myHero.name][18])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.DevestatingStrike = mastery
-			end
-		else
-			DelayAction(function(menu, pVar) OnMenuLoaded(menu, pVar) end, 0.5, {menu, pVar})
+_G.scriptConfigEx = _G.scriptConfig
+_G.scriptConfig = 
+	function(header, name, parent)
+		local menu = _G.scriptConfigEx(header, name, parent)
+		if (menu ~= nil) then
+			table.insert(menuList, menu)
 		end
-	elseif (METHOD == 1) then
-		if (SummonerInfo[myHero.name] ~= nil and SummonerInfo[myHero.name]["Masteries"] ~= nil and type(SummonerInfo[myHero.name]["Masteries"]) == "table") then
-			if (pVar == "ButcherOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name]["Masteries"][4])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.ButcherOn = mastery
-			elseif (pVar == "ArcaneBladeOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name]["Masteries"][19])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.ArcaneBladeOn = mastery
-			elseif (pVar == "HavocOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name]["Masteries"][20])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.HavocOn = mastery
-			elseif (pVar == "DEdgedSwordOn") then
-				local mastery = tonumber(SummonerInfo[myHero.name]["Masteries"][1])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.DEdgedSwordOn = mastery
-			elseif (pVar == "DevestatingStrike") then
-				local mastery = tonumber(SummonerInfo[myHero.name]["Masteries"][18])
-				if (mastery == 0) then
-					mastery = false
-				else
-					mastery = true
-				end
-				menu.DevestatingStrike = mastery
+		return menu
+	end
+
+local initiated = 
+{
+	[4114] = false,
+	[4154] = false,
+	[4162] = false,
+	[4111] = false,
+	[4152] = false
+}
+AddTickCallback(
+	function()
+		local fullyInitiated =
+			function()
+				if (_G.MMA_Loaded) then
+					return (initiated[4114] and initiated[4154] and initiated[4162])
+				return (initiated[4114] and initiated[4154] and initiated[4162] and initiated[4111] and initiated[4152])
 			end
-		else
-			DelayAction(function(menu, pVar) OnMenuLoaded(menu, pVar) end, 0.5, {menu, pVar})
+		if (not fullyInitiated() and _G.MasteriesDone) then
+			if (_G.Masteries ~= nil and _G.Masteries[myHero.hash]) then
+				for _, c in ipairs(menuList) do
+					for _, v in ipairs(c._param) do
+						if (v.var == "ButcherOn" or v.var == "Butcher" or v.var == "butcherMastery") then
+							--4114
+							c[v.var] = _G.Masteries[myHero.hash][4114]
+							initiated[4114] = true
+						elseif (v.var == "ArcaneBladeOn" or v.var == "ArcaneBlade" or v.var == "arcaneBladeMastery") then
+							--4154
+							c[v.var] = _G.Masteries[myHero.hash][4154]
+							initiated[4154] = true
+						elseif (v.var == "HavocOn" or v.var == "Havoc" or v.var == "havocMastery") then
+							--4162
+							c[v.var] = _G.Masteries[myHero.hash][4162]
+							initiated[4162] = true
+						elseif (v.var == "DEdgedSwordOn" or v.var == "DoubleEdgedSword") then
+							--4111
+							c[v.var] = _G.Masteries[myHero.hash][4111]
+							initiated[4111] = true
+						elseif (v.var == "DevastatingStrikes" or v.var == "DevastatingStrike") then
+							--4152
+							c[v.var] = _G.Masteries[myHero.hash][4152]
+							initiated[4152] = true
+						end
+					end
+				end
+			end
 		end
+	end)
+
+class "GetMasteries"
+function GetMasteries:__init(AllChamps)
+	if not _G.Masteries then
+		self.ChampTable = {}
+		for z = 1, heroManager.iCount, 1 do
+			local hero = heroManager:getHero(z)
+			if not hero.isAI then
+				table.insert(self.ChampTable, hero)
+			end
+		end
+		self.LuaSocket = require("socket")
+		self.MasterySocket = self.LuaSocket.connect("www.sx-bol.eu", 80)
+		self.RandomChamp = self.ChampTable[math.random(#self.ChampTable)]
+		if AllChamps then self.AllChamps = '/1' else self.AllChamps = '/0' end
+		self.MasterySocket:send("GET /BoL/GetMastery/"..GetRegion().."/"..self:url_encode(myHero.name).."/"..self:url_encode(self.RandomChamp.name)..self.AllChamps.." HTTP/1.0\r\n\r\n")
+		self.MasterySocket:settimeout(0, 'b')
+		self.MasterySocket:settimeout(99999999, 't')
+		self.MasterySocket:setoption('keepalive', true)
+		_G.Masteries = {}
+		AddTickCallback(function() self:Collect() end)
 	end
 end
 
-function SxDownloadString(source, callback, working, OldLenght)
-	if not working then
-		if FileExist(LIB_PATH.."SxDownloadString") then os.remove(LIB_PATH.."SxDownloadString") end
-		os.executePowerShellAsync([[$webClient = New-Object System.Net.WebClient;$webClient.DownloadFile(']]..source..[[', ']]..LIB_PATH.."SxDownloadString"..[[');exit;]])
-		DelayAction(function() SxDownloadString(source, callback, true, 0) end)
-	else
-		if FileExist(LIB_PATH.."SxDownloadString") then
-			FileOpen = io.open(LIB_PATH.."SxDownloadString", "r")
-			FileString = FileOpen:read("*a")
-			FileOpen:close()
-			if #FileString > 0 and #FileString == OldLenght then
-				os.remove(LIB_PATH.."SxDownloadString")
-				callback(FileString)
+function GetMasteries:url_encode(str)
+	if (str) then
+		str = string.gsub (str, "\n", "\r\n")
+		str = string.gsub (str, "([^%w %-%_%.%~])",
+		function (c) return string.format ("%%%02X", string.byte(c)) end)
+		str = string.gsub (str, " ", "+")
+	end
+  return str
+end
+
+function GetMasteries:Collect()
+	self.MasteryReceive, self.MasteryStatus = self.MasterySocket:receive('*a')
+	if self.MasteryStatus ~= 'timeout' and self.MasteryReceive ~= nil and not _G.MasteriesDone then
+		self.MasteryRaw = string.match(self.MasteryReceive, '<pre>(.*)</pre>')
+		if self.MasteryRaw then
+			self.MasteriesRaw = JSON:decode(self.MasteryRaw)
+			if self.AllChamps == '/1' and #self.ChampTable > 1 then
+				for _,MasteryTable in pairs(self.MasteriesRaw) do
+					for z = 1, #self.ChampTable, 1 do
+						local hero = self.ChampTable[z]
+						if hero.name == MasteryTable['name'] then
+							_G.Masteries[hero.hash] = {}
+							for index, info in pairs(MasteryTable) do
+								if info.sli and info.r then
+									_G.Masteries[hero.hash][info.sli] = info.r
+								else
+									_G.Masteries[hero.hash][index] = info
+								end
+							end
+							break
+						end
+					end
+				end
+				_G.MasteriesDone = true
 			else
-				DelayAction(function() SxDownloadString(source, callback, true, #FileString) end, 0.2)
+				_G.Masteries[myHero.hash] = {}
+				for _,MasteryTable in pairs(self.MasteriesRaw) do
+					if MasteryTable.sli and MasteryTable.r then
+						_G.Masteries[myHero.hash][MasteryTable.sli] = MasteryTable.r
+					else
+						_G.Masteries[myHero.hash][_] = MasteryTable
+					end
+				end
+				_G.MasteriesDone = true
 			end
 		else
-			DelayAction(function() SxDownloadString(source, callback, true, 0) end)
-		end
-	end
-end
-
-function ParseLolSkill(data)
-	SummonerInfo = {}
-	for i=1,10 do
-		FindSummonerStart = string.find(data, '<div class="summonername">')
-		if FindSummonerStart then
-			SummonerStartCut = string.sub(data,FindSummonerStart+2)
-			NextSummoner = string.find(SummonerStartCut, '<div class="summonername">')
-			if NextSummoner then
-				SummonerSub = string.sub(SummonerStartCut, 0, NextSummoner)
-				data = string.sub(data,NextSummoner-10)
-			else
-				SummonerSub = SummonerStartCut
-			end
-			NameStart = string.find(SummonerSub, '<a href="http://quickfind.kassad.in/profile/')
-			NameEnd = string.find(SummonerSub, '</a></strong>\n')
-			NameRaw = string.sub(SummonerSub, NameStart, NameEnd-1)
-			_,SummonerName = string.match(NameRaw, '(\">)(.*)')
-			SummonerInfo[SummonerName] = {}
-			SummonerInfo[SummonerName]["Masteries"] = {}
-			for _,Points in string.gmatch(SummonerSub, '(<span id="mastery-cur-%d">)(%d)(/)(%d)(</span>)') do
-				table.insert(SummonerInfo[SummonerName]["Masteries"], Points)
-			end
-		else
-			break
+			_G.MasteriesDone = true
 		end
 	end
 end

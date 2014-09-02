@@ -1,15 +1,25 @@
 local version = 2.0
 _OwnEnv = GetCurrentEnv().FILE_NAME:gsub(".lua", "")
+
+require "MasteryHandler"
 AddLoadCallback(
 	function()
 		TCPU = TCPUpdater()
+		TCPU:AddScript("MasteryHandler", "Lib", "raw.githubusercontent.com", 
+			"/germansk8ter/MasteryGrabber-Library/master/MasteryHandler.lua", "/germansk8ter/MasteryGrabber-Library/master/MasteryHandler.version", "_G.MasteryHandler.version =")
 		TCPU:AddScript(_OwnEnv, "Script", "raw.githubusercontent.com","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber.lua","/germansk8ter/MiniMasteryGrabber/master/MiniMasteryGrabber.version", "local version =")
-		GetMasteries()
 	end)
 
 
 local menuList = {}
 local initiated = false
+local mh = nil
+
+
+AddLoadCallback(
+	function()
+		mh = MasteryHandler()
+	end)
 
 _G.scriptConfigEx = _G.scriptConfig
 _G.scriptConfig = 
@@ -21,127 +31,34 @@ _G.scriptConfig =
 		return menu
 	end
 
-local initiated = 
-{
-	[4114] = false,
-	[4154] = false,
-	[4162] = false,
-	[4111] = false,
-	[4152] = false
-}
 AddTickCallback(
 	function()
-		local fullyInitiated =
-			function()
-				if (_G.MMA_Loaded) then
-					return (initiated[4114] and initiated[4154] and initiated[4162])
-				return (initiated[4114] and initiated[4154] and initiated[4162] and initiated[4111] and initiated[4152])
-			end
-		if (not fullyInitiated() and _G.MasteriesDone) then
-			if (_G.Masteries ~= nil and _G.Masteries[myHero.hash]) then
-				for _, c in ipairs(menuList) do
-					for _, v in ipairs(c._param) do
+		if (not initiated) then
+			for _, c in ipairs(menuList) do
+				for _, v in ipairs(c._param) do
+					if (mh:isReady() and v.pType == SCRIPT_PARAM_ONOFF) then
 						if (v.var == "ButcherOn" or v.var == "Butcher" or v.var == "butcherMastery") then
 							--4114
-							c[v.var] = _G.Masteries[myHero.hash][4114]
-							initiated[4114] = true
+							c[v.var] = mh:getMastery(myHero.hash, 4114)
 						elseif (v.var == "ArcaneBladeOn" or v.var == "ArcaneBlade" or v.var == "arcaneBladeMastery") then
 							--4154
-							c[v.var] = _G.Masteries[myHero.hash][4154]
-							initiated[4154] = true
+							c[v.var] = mh:getMastery(myHero.hash, 4154)
 						elseif (v.var == "HavocOn" or v.var == "Havoc" or v.var == "havocMastery") then
 							--4162
-							c[v.var] = _G.Masteries[myHero.hash][4162]
-							initiated[4162] = true
+							c[v.var] = mh:getMastery(myHero.hash, 4162)
 						elseif (v.var == "DEdgedSwordOn" or v.var == "DoubleEdgedSword") then
 							--4111
-							c[v.var] = _G.Masteries[myHero.hash][4111]
-							initiated[4111] = true
-						elseif (v.var == "DevastatingStrikes" or v.var == "DevastatingStrike") then
+							c[v.var] = mh:getMastery(myHero.hash, 4111)
+						elseif (v.var == "DevestatingStrike" or v.var == "DevastatingStrikes") then
 							--4152
-							c[v.var] = _G.Masteries[myHero.hash][4152]
-							initiated[4152] = true
+							c[v.var] = mh:getMastery(myHero.hash, 4152)
 						end
+						initiated = true
 					end
 				end
 			end
 		end
 	end)
-
-class "GetMasteries"
-function GetMasteries:__init(AllChamps)
-	if not _G.Masteries then
-		self.ChampTable = {}
-		for z = 1, heroManager.iCount, 1 do
-			local hero = heroManager:getHero(z)
-			if not hero.isAI then
-				table.insert(self.ChampTable, hero)
-			end
-		end
-		self.LuaSocket = require("socket")
-		self.MasterySocket = self.LuaSocket.connect("www.sx-bol.eu", 80)
-		self.RandomChamp = self.ChampTable[math.random(#self.ChampTable)]
-		if AllChamps then self.AllChamps = '/1' else self.AllChamps = '/0' end
-		self.MasterySocket:send("GET /BoL/GetMastery/"..GetRegion().."/"..self:url_encode(myHero.name).."/"..self:url_encode(self.RandomChamp.name)..self.AllChamps.." HTTP/1.0\r\n\r\n")
-		self.MasterySocket:settimeout(0, 'b')
-		self.MasterySocket:settimeout(99999999, 't')
-		self.MasterySocket:setoption('keepalive', true)
-		_G.Masteries = {}
-		AddTickCallback(function() self:Collect() end)
-	end
-end
-
-function GetMasteries:url_encode(str)
-	if (str) then
-		str = string.gsub (str, "\n", "\r\n")
-		str = string.gsub (str, "([^%w %-%_%.%~])",
-		function (c) return string.format ("%%%02X", string.byte(c)) end)
-		str = string.gsub (str, " ", "+")
-	end
-  return str
-end
-
-function GetMasteries:Collect()
-	self.MasteryReceive, self.MasteryStatus = self.MasterySocket:receive('*a')
-	if self.MasteryStatus ~= 'timeout' and self.MasteryReceive ~= nil and not _G.MasteriesDone then
-		self.MasteryRaw = string.match(self.MasteryReceive, '<pre>(.*)</pre>')
-		if self.MasteryRaw then
-			self.MasteriesRaw = JSON:decode(self.MasteryRaw)
-			if self.AllChamps == '/1' and #self.ChampTable > 1 then
-				for _,MasteryTable in pairs(self.MasteriesRaw) do
-					for z = 1, #self.ChampTable, 1 do
-						local hero = self.ChampTable[z]
-						if hero.name == MasteryTable['name'] then
-							_G.Masteries[hero.hash] = {}
-							for index, info in pairs(MasteryTable) do
-								if info.sli and info.r then
-									_G.Masteries[hero.hash][info.sli] = info.r
-								else
-									_G.Masteries[hero.hash][index] = info
-								end
-							end
-							break
-						end
-					end
-				end
-				_G.MasteriesDone = true
-			else
-				_G.Masteries[myHero.hash] = {}
-				for _,MasteryTable in pairs(self.MasteriesRaw) do
-					if MasteryTable.sli and MasteryTable.r then
-						_G.Masteries[myHero.hash][MasteryTable.sli] = MasteryTable.r
-					else
-						_G.Masteries[myHero.hash][_] = MasteryTable
-					end
-				end
-				_G.MasteriesDone = true
-			end
-		else
-			_G.MasteriesDone = true
-		end
-	end
-end
-
 
 ------------------------
 ------ TCPUpdater ------
